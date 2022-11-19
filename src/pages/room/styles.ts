@@ -11,9 +11,18 @@ export const Container = styled.div`
 
 export const Top = styled.div`
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   flex-direction: column;
+`;
+
+export const Content = styled.div`
+  width: 100%;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin: 0 0 60px 0;
 `;
 
 export const Title = styled.span`
@@ -33,15 +42,22 @@ export const Description = styled.span`
   color: #000;
 `;
 
-export const TextInput = styled.input`
+export const UserBox = styled.div`
   font-size: 16px;
-  height: 40px;
   background-color: #f7f8f8;
   padding: 25px;
   margin: 10px;
   border-radius: 15px;
-  width: 100%;
   color: #000;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const NameBox = styled.p`
+  color: #000;
+  font-size: 20px;
+  text-align: center;
+  margin: 20px 0;
 `;
 
 export const Button = styled.button`
@@ -51,22 +67,12 @@ export const Button = styled.button`
   width: 100%;
 `;
 
-export const SmallButton = styled.button`
-  background-color: transparent;
-  flex-direction: row;
-`;
+
 
 export const ButtonText = styled.span`
   color: #fff;
   font-size: 20px;
   text-align: center;
-`;
-
-export const SmallButtonText = styled.span`
-  color: #c58bf2;
-  font-size: 20px;
-  text-align: center;
-  margin-left: 5px;
 `;
 
 export const Text = styled.span`

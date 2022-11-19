@@ -1,6 +1,6 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* @tailwind components; */
+/* @tailwind utilities; */
 
 *{
   font-family: 'Source Sans Pro', sans-serif;
@@ -9,4 +9,8 @@
 .gradient {
   /* background: linear-gradient(90deg, #009fe2 0%, #d53369 100%); */
   background: linear-gradient(90deg, #009fe2 0%, #009fe2 100%);
+}
+
+#root {
+  height: 100vh;
 }
