@@ -4,4 +4,5 @@ export const Container = styled.div`
   background-color: purple;
   display: flex;
   flex: 1;
+  height: 100%;
 `;
