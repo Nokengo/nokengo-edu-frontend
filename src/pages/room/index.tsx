@@ -46,18 +46,41 @@ const Room: React.FC = () => {
             <NameBox>Usuário Samuel</NameBox>
           </UserBox>
           <UserBox>
-            <video width="500" height="240" controls ref={remoteVideoRef}>
-              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
-              <source src="https://www.w3schools.com/html/mov_bbb.ogg" type="video/ogg" />
-              Your browser does not support the video tag.
-            </video>
+            <video width="500" height="240" controls ref={remoteVideoRef} autoPlay></video>
             <NameBox>Usuário Samuel</NameBox>
           </UserBox>
         </Content>
       </Top>
-      <Button onClick={getUserMedia}>
-        <ButtonText>Entrar na sala</ButtonText>
-      </Button>
+
+      <div className="grid grid-cols-5">
+        <div className='px-2'>
+          <Button onClick={getUserMedia}>
+            <ButtonText>Autorizar</ButtonText>
+          </Button>
+        </div>
+        <div className='px-2'>
+          <Button onClick={getUserMedia}>
+            <ButtonText>Create offer</ButtonText>
+          </Button>
+        </div>
+        <div className='px-2'>
+          <Button onClick={getUserMedia}>
+            <ButtonText>Create answer</ButtonText>
+          </Button>
+        </div>
+        <div className='px-2'>
+          <Button onClick={getUserMedia}>
+            <ButtonText>Set remote</ButtonText>
+          </Button>
+        </div>
+        <div className='px-2'>
+          <Button onClick={getUserMedia}>
+            <ButtonText>Entrar na sala</ButtonText>
+          </Button>
+        </div>
+      </div>
+
+
 
       <Button>
         <ButtonText>Sair</ButtonText>
