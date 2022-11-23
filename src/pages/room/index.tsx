@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Button,
@@ -12,12 +12,23 @@ import {
   UserBox
 } from './styles';
 
+// import io from 'socket.io-client';
+
 const Room: React.FC = () => {
   const localVideoRef = React.useRef<HTMLVideoElement>(null);
   const remoteVideoRef = React.useRef<HTMLVideoElement>(null);
   const constraints = { video: true, audio: false };
   const pc = React.useRef<RTCPeerConnection>(new RTCPeerConnection());
   const textRef = React.useRef<HTMLTextAreaElement>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  // const socket = io(
+  //   'http://localhost:3000/webRTCPeers',
+  //   {
+  //     path: '/webrtc',
+  //     query: {}
+  //   }
+  // );
 
   const getUserMedia = async () => {
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -108,8 +119,6 @@ const Room: React.FC = () => {
     console.log('Addind candidate...', candidate);
     pc.current.addIceCandidate(new RTCIceCandidate(candidate));
   }
-
-
 
   return (
     <Container>

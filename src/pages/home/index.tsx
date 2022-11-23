@@ -1,3 +1,4 @@
+import React from "react";
 import { Nav } from "../../components/Nav";
 import undrawOnlineMedia from "../../assets/img/undraw_online_media.svg";
 import waves from "../../assets/img/waves.svg";
