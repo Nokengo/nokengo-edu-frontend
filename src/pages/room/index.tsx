@@ -12,7 +12,7 @@ import {
   UserBox
 } from './styles';
 
-// import io from 'socket.io-client';
+import io from 'socket.io-client';
 
 const Room: React.FC = () => {
   const localVideoRef = React.useRef<HTMLVideoElement>(null);
@@ -21,14 +21,34 @@ const Room: React.FC = () => {
   const pc = React.useRef<RTCPeerConnection>(new RTCPeerConnection());
   const textRef = React.useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = React.useState(true);
+  const [remoteSDP, setRemoteSDP] = React.useState<RTCSessionDescriptionInit>();
+  // const [candidates, setCandidates] = React.useState<RTCIceCandidate[]>([]);
+  const candidates = React.useRef<RTCIceCandidate[]>([]);
 
-  // const socket = io(
-  //   'http://localhost:3000/webRTCPeers',
-  //   {
-  //     path: '/webrtc',
-  //     query: {}
-  //   }
-  // );
+  const socket = io(
+    'http://localhost:3000/webRTCPeers',
+    {
+      path: '/webrtc',
+      query: {}
+    }
+  );
+
+  //socket connection
+  socket.on('connection-success', (success) => {
+    console.log(success);
+  });
+
+  socket.on('sdp', (message) => {
+    if (textRef.current) {
+      textRef.current.value = JSON.stringify(message.sdp);
+    }
+    console.log('sdp', message);
+  });
+
+  socket.on('candidate', candidate => {
+    console.log('candidate', candidate);
+    candidates.current = [...candidates.current, candidate];
+  });
 
   const getUserMedia = async () => {
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -39,6 +59,7 @@ const Room: React.FC = () => {
     _pc.onicecandidate = (event) => {
       if (event.candidate) {
         console.log(JSON.stringify(event.candidate));
+        socket.emit('candidate', event.candidate);
       }
     }
 
@@ -89,8 +110,13 @@ const Room: React.FC = () => {
       offerToReceiveAudio: true,
       offerToReceiveVideo: true
     }).then((sdp) => {
-      pc.current.setLocalDescription(sdp);
       console.log(JSON.stringify(sdp));
+      pc.current.setLocalDescription(sdp);
+
+      // send the offer to the other peer
+      socket.emit('sdp', {
+        sdp
+      })
     }).catch((error) => { });
   }
 
@@ -99,8 +125,13 @@ const Room: React.FC = () => {
       offerToReceiveAudio: true,
       offerToReceiveVideo: true
     }).then((sdp) => {
-      pc.current.setLocalDescription(sdp);
       console.log(JSON.stringify(sdp));
+      pc.current.setLocalDescription(sdp);
+
+      // send the answer sdp to the offering peer
+      socket.emit('sdp', {
+        sdp
+      })
     }).catch((error) => { });
   }
 
@@ -115,9 +146,13 @@ const Room: React.FC = () => {
   }
 
   const addIceCandidate = () => {
-    const candidate = JSON.parse(textRef.current?.value || '');
-    console.log('Addind candidate...', candidate);
-    pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+    // const candidate = JSON.parse(textRef.current?.value || '');
+    // console.log('Addind candidate...', candidate);
+    // pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+    // pc.current.addIceCandidate(new RTCIceCandidate(candidates[0]));
+    candidates.current.forEach(candidate => {
+      pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+    });
   }
 
   return (
