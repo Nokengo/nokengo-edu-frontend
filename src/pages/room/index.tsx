@@ -13,6 +13,7 @@ import {
 } from './styles';
 
 import io from 'socket.io-client';
+import Peer from "peerjs";
 
 const Room: React.FC = () => {
   const localVideoRef = React.useRef<HTMLVideoElement>(null);
@@ -24,11 +25,14 @@ const Room: React.FC = () => {
   const [remoteSDP, setRemoteSDP] = React.useState<RTCSessionDescriptionInit>();
   // const [candidates, setCandidates] = React.useState<RTCIceCandidate[]>([]);
   const candidates = React.useRef<RTCIceCandidate[]>([]);
+  const newMediaStream = React.useRef<MediaStream>();
+  const newPeer = React.useRef<Peer>();
 
   const socket = io(
-    'http://localhost:3000/webRTCPeers',
+    // 'http://localhost:3000/webRTCPeers',
+    'https://edu.nokengo.com/webRTCPeers',
     {
-      path: '/webrtc',
+      path: '/api/webrtc',
       query: {}
     }
   );
@@ -51,31 +55,82 @@ const Room: React.FC = () => {
   });
 
   const getUserMedia = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    localVideoRef.current ? localVideoRef.current.srcObject = stream : null;
+    // const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    // localVideoRef.current ? localVideoRef.current.srcObject = stream : null;
 
 
-    const _pc = new RTCPeerConnection();
-    _pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log(JSON.stringify(event.candidate));
-        socket.emit('candidate', event.candidate);
-      }
-    }
+    // const _pc = new RTCPeerConnection({
+    //   // iceTransportPolicy: 'relay',
+    //   iceServers: [
+    //     {
+    //       "urls": "stun:157.230.134.132:3478",
+    //       "username": "username",
+    //       "credential": "password"
+    //     },
+    //     {
+    //       "urls": "turn:157.230.134.132:3478",
+    //       "username": "username",
+    //       "credential": "password"
+    //     }
+    //   ]
+    // });
 
-    _pc.oniceconnectionstatechange = (event) => {
-      console.log(event);
-    }
+    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+    localVideoRef.current ? localVideoRef.current.srcObject = mediaStream : null;
 
-    _pc.ontrack = (event) => {
-      // we got remote stream 
-      console.log('onTrack');
-      remoteVideoRef.current ? remoteVideoRef.current.srcObject = event.streams[0] : null;
-    }
+    const peer = new Peer({
+      host: "edu.nokengo.com",
+      path: "/",
+      port: 443,
+    });
 
-    stream.getTracks().forEach(track => _pc.addTrack(track, stream));
+    newPeer.current = peer;
+    newMediaStream.current = mediaStream;
 
-    pc.current = _pc;
+    peer.on('open', function (id) {
+      console.log('My peer ID is: ' + id);
+    });
+
+    peer.on('connection', function (conn) {
+      conn.on('data', function (data) {
+        // Will print 'hi!'
+        console.log(data);
+      });
+    });
+
+    peer.on('call', function (call) {
+      // Answer the call, providing our mediaStream
+      call.answer(mediaStream);
+    });
+
+
+    console.log(peer);
+
+
+
+    // const _pc = new RTCPeerConnection();
+
+    // _pc.onicecandidate = (event) => {
+    //   if (event.candidate) {
+    //     console.log(JSON.stringify(event.candidate));
+    //     socket.emit('candidate', event.candidate);
+    //   }
+    // }
+
+    // _pc.oniceconnectionstatechange = (event) => {
+    //   console.log(event);
+    // }
+
+    // _pc.ontrack = (event) => {
+    //   // we got remote stream 
+    //   console.log('onTrack');
+    //   console.log(event.streams, 'streams');
+    //   remoteVideoRef.current ? remoteVideoRef.current.srcObject = event.streams[0] : null;
+    // }
+
+    // stream.getTracks().forEach(track => _pc.addTrack(track, stream));
+
+    // pc.current = peer;
   }
 
   // const getIceCandidates = async () => {
@@ -106,33 +161,50 @@ const Room: React.FC = () => {
   // }
 
   const createOffer = () => {
-    pc.current.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true
-    }).then((sdp) => {
-      console.log(JSON.stringify(sdp));
-      pc.current.setLocalDescription(sdp);
+    // pc.current.createOffer({
+    //   offerToReceiveAudio: true,
+    //   offerToReceiveVideo: true
+    // }).then((sdp) => {
+    //   console.log(JSON.stringify(sdp));
+    //   pc.current.setLocalDescription(sdp);
 
-      // send the offer to the other peer
-      socket.emit('sdp', {
-        sdp
-      })
-    }).catch((error) => { });
+    //   // send the offer to the other peer
+    //   socket.emit('sdp', {
+    //     sdp
+    //   })
+    // }).catch((error) => { });
+    if (textRef.current && newPeer.current && newMediaStream.current) {
+      var call = newPeer.current.call(textRef.current.value, newMediaStream.current);
+
+      call.on('stream', function (stream: any) {
+        // `stream` is the MediaStream of the remote peer.
+        // Here you'd add it to an HTML video/canvas element.
+        remoteVideoRef.current ? remoteVideoRef.current.srcObject = stream : null;
+      });
+    }
   }
 
   const createAnswer = () => {
-    pc.current.createAnswer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: true
-    }).then((sdp) => {
-      console.log(JSON.stringify(sdp));
-      pc.current.setLocalDescription(sdp);
+    // pc.current.createAnswer({
+    //   offerToReceiveAudio: true,
+    //   offerToReceiveVideo: true
+    // }).then((sdp) => {
+    //   console.log(JSON.stringify(sdp));
+    //   pc.current.setLocalDescription(sdp);
 
-      // send the answer sdp to the offering peer
-      socket.emit('sdp', {
-        sdp
-      })
-    }).catch((error) => { });
+    //   // send the answer sdp to the offering peer
+    //   socket.emit('sdp', {
+    //     sdp
+    //   })
+    // }).catch((error) => { });
+
+    if (newPeer.current && newMediaStream.current) {
+
+      newPeer.current.on('call', function (call) {
+        // Answer the call, providing our mediaStream
+        call.answer(newMediaStream.current);
+      });
+    }
   }
 
   const setRemoteDescription = () => {
@@ -146,13 +218,18 @@ const Room: React.FC = () => {
   }
 
   const addIceCandidate = () => {
-    // const candidate = JSON.parse(textRef.current?.value || '');
-    // console.log('Addind candidate...', candidate);
-    // pc.current.addIceCandidate(new RTCIceCandidate(candidate));
-    // pc.current.addIceCandidate(new RTCIceCandidate(candidates[0]));
-    candidates.current.forEach(candidate => {
-      pc.current.addIceCandidate(new RTCIceCandidate(candidate));
-    });
+    const candidate = JSON.parse(textRef.current?.value || '');
+    console.log('Addind candidate...', candidate);
+    pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+    // // pc.current.addIceCandidate(new RTCIceCandidate(candidates[0]));
+    // candidates.current.forEach(candidate => {
+    //   console.log('candidate', candidate);
+    //   pc.current.addIceCandidate(new RTCIceCandidate(candidate));
+    //   if (candidate.candidate.includes('relay')) {
+    //   } else {
+    //     console.log('not relay');
+    //   }
+    // });
   }
 
   return (
