@@ -15,6 +15,7 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/room" element={<Room />} />
+        <Route path="/sign-up" element={<Search />} />
       </Routes>
     </BrowserRouter>
   )
