@@ -14,8 +14,14 @@ import {
 
 import io from 'socket.io-client';
 import Peer from "peerjs";
+import { useParams } from 'react-router-dom';
 
 const Room: React.FC = () => {
+  const { meetingId } = useParams();
+
+  console.log(meetingId);
+
+  //not refactored yet
   const localVideoRef = React.useRef<HTMLVideoElement>(null);
   const remoteVideoRef = React.useRef<HTMLVideoElement>(null);
   const constraints = { video: true, audio: false };
@@ -29,11 +35,13 @@ const Room: React.FC = () => {
   const newPeer = React.useRef<Peer>();
 
   const socket = io(
-    // 'http://localhost:3000/webRTCPeers',
-    'https://edu.nokengo.com/webRTCPeers',
+    'http://localhost:3333/webRTCPeers',
+    // 'https://edu.nokengo.com/webRTCPeers',
     {
-      path: '/api/webrtc',
-      query: {}
+      path: '/webrtc',
+      query: {
+        meetingId: meetingId
+      }
     }
   );
 
@@ -78,33 +86,33 @@ const Room: React.FC = () => {
     const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
     localVideoRef.current ? localVideoRef.current.srcObject = mediaStream : null;
 
-    const peer = new Peer({
-      host: "edu.nokengo.com",
-      path: "/",
-      port: 443,
-    });
+    // const peer = new Peer({
+    //   host: "edu.nokengo.com",
+    //   path: "/",
+    //   port: 443,
+    // });
 
-    newPeer.current = peer;
-    newMediaStream.current = mediaStream;
+    // newPeer.current = peer;
+    // newMediaStream.current = mediaStream;
 
-    peer.on('open', function (id) {
-      console.log('My peer ID is: ' + id);
-    });
+    // peer.on('open', function (id) {
+    //   console.log('My peer ID is: ' + id);
+    // });
 
-    peer.on('connection', function (conn) {
-      conn.on('data', function (data) {
-        // Will print 'hi!'
-        console.log(data);
-      });
-    });
+    // peer.on('connection', function (conn) {
+    //   conn.on('data', function (data) {
+    //     // Will print 'hi!'
+    //     console.log(data);
+    //   });
+    // });
 
-    peer.on('call', function (call) {
-      // Answer the call, providing our mediaStream
-      call.answer(mediaStream);
-    });
+    // peer.on('call', function (call) {
+    //   // Answer the call, providing our mediaStream
+    //   call.answer(mediaStream);
+    // });
 
 
-    console.log(peer);
+    // console.log(peer);
 
 
 

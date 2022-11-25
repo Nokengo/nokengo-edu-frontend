@@ -2,12 +2,12 @@ import React from 'react';
 
 import { Button, ButtonText, Container, SectionTitle, Select, SmallButton, SmallButtonText, Text, TextInput, Title, Top } from './styles';
 
-const Search: React.FC = () => {
+const MeetingsNew: React.FC = () => {
   return (
     <Container>
       <Top>
-        <Title>Bem-vindo!</Title>
-        <SectionTitle>Criar uma conta</SectionTitle>
+        <Title>Solicitar tutoria</Title>
+        <SectionTitle>Selecione a disciplina que deseja procurar um tutor</SectionTitle>
 
         <Select name='subject' onChange={()=>{}}>
             <option value="0">Selecione a disciplina</option>
@@ -22,4 +22,4 @@ const Search: React.FC = () => {
   );
 }
 
-export default Search;
+export default MeetingsNew;
