@@ -19,7 +19,7 @@ function AppRoutes() {
         <Route path="/room" element={<Room />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/meetings/new" element={<MeetingsNew />} />
-        <Route path="/meetings/watch/:meetingId" element={<Room />} />
+        <Route path="/meetings/watch/:meetingId/:action/:userId" element={<Room />} />
       </Routes>
     </BrowserRouter>
   )
