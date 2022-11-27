@@ -49,10 +49,10 @@ const Room: React.FC = () => {
   const [hasPartner, setHasPartner] = React.useState(false);
 
   const setSocketIo = () => {
-    const _socket = io('http://localhost:3000/');
+    // const _socket = io('http://localhost:3000/');
+    const _socket = io('https://backedu.nokengo.com/');
     socket.current = _socket;
 
-    // const _socket = io('https://directback.nokengo.com/');
 
     //_socket connection
     _socket.on('connection-success', (success) => {
@@ -67,7 +67,6 @@ const Room: React.FC = () => {
       console.log('user-connected', partnerId, userId, email);
       if (userId !== partnerId) {
         setTimeout(() => {
-          // setCanStart(true);
           setHasPartner(true);
         }, 2000);
       }
