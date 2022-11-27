@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getUserLocalStorage } from '../contexts/AuthProvider/util';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://backedu.nokengo.com/api',
 });
 
 api.interceptors.request.use(
