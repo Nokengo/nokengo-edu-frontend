@@ -1,11 +1,13 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
+  display: flex;
   flex: 1;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-start;
+  height: 100%;
   padding: 50px 30px;
-  background-color: #fff;
+  background-color: #0f182a;
   flex-direction: column;
 `;
 
@@ -18,19 +20,19 @@ export const Top = styled.div`
 
 export const Title = styled.span`
   font-size: 24px;
-  color: #000;
+  color: #e5e7eb;
 `;
 
 export const SectionTitle = styled.span`
   font-size: 30px;
-  color: #000;
+  color: #e5e7eb;
   font-weight: bold;
   margin-bottom: 30px;
 `;
 
 export const Description = styled.span`
   font-size: 16px;
-  color: #000;
+  color: #e5e7eb;
 `;
 
 export const TextInput = styled.input`
@@ -49,6 +51,10 @@ export const Button = styled.button`
   padding: 10px 20px;
   border-radius: 25px;
   width: 100%;
+  &:disabled {
+    background-color: #92a3fd;
+    opacity: 0.5;
+  }
 `;
 
 export const SmallButton = styled.button`

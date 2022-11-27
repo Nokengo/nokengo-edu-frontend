@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import {
   Button,
@@ -12,14 +12,21 @@ import {
   UserBox
 } from './styles';
 
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import Peer from "peerjs";
 import { useParams } from 'react-router-dom';
+import PingLoadingButton from '../../../components/PingLoading';
 import { useAuth } from '../../../contexts/AuthProvider/useAuth';
 
-const Meeting: React.FC = () => {
+
+const Room: React.FC = () => {
+  const [waiting, setWaiting] = React.useState(true);
+  const [canAuthorize, setCanAuthorize] = React.useState(true);
+  const [canStart, setCanStart] = React.useState(false);
   const { meetingId } = useParams();
-  const { id: userId } = useAuth();
+  const { id: userId, role, email } = useAuth();
+  const [partnerReady, setPartnerReady] = React.useState(false);
+  const [ready, setReady] = React.useState(false);
 
   //console.log(meetingId);
 
@@ -36,45 +43,62 @@ const Meeting: React.FC = () => {
   const newMediaStream = React.useRef<MediaStream>();
   const newPeer = React.useRef<Peer>();
   const [isHost, setIsHost] = React.useState(false);
+  const socket = useRef<Socket>();
 
-  const socket = io('http://localhost:3000/');
-  // const socket = io('https://directback.nokengo.com/');
+  const setSocketIo = () => {
+    const _socket = io('http://localhost:3000/');
+    socket.current = _socket;
 
-  //socket connection
-  socket.on('connection-success', (success) => {
-    console.log(success);
+    // const _socket = io('https://directback.nokengo.com/');
 
-    //join room
-    socket.emit('join-room', { meetingId, userId });
-  });
+    //_socket connection
+    _socket.on('connection-success', (success) => {
+      console.log(success);
 
-  socket.on('user-connected', (userId) => {
-    console.log('user-connected', userId);
-  });
+      //join room
+      _socket.emit('join-room', { meetingId, userId });
+    });
 
-  socket.on('sdp', (message) => {
-    if (textRef.current) {
-      textRef.current.value = JSON.stringify(message.sdp);
-    }
-    // console.log('sdp', message);
-    if (!isHost) {
-      pc.current.setRemoteDescription(new RTCSessionDescription(message.sdp));
-      createAnswer();
-    }
-    // if (message.action === 'answer') {
-    //   pc.current.setRemoteDescription(new RTCSessionDescription(message.sdp));
-    // }
-  });
+    _socket.on('user-connected', (partnerId) => {
+      console.log('user-connected', partnerId, userId, email);
+      if (userId !== partnerId) {
+        setTimeout(() => {
+          // setCanStart(true);
+        }, 2000);
+      }
+    });
 
-  socket.on('candidate', candidate => {
-    candidates.current = [...candidates.current, candidate];
-    addIceCandidates();
-  });
+    _socket.on('sdp', (message) => {
+      if (textRef.current) {
+        textRef.current.value = JSON.stringify(message.sdp);
+      }
+      // console.log('sdp', message);
+      if (!isHost) {
+        pc.current.setRemoteDescription(new RTCSessionDescription(message.sdp));
+        createAnswer();
+      }
+      // if (message.action === 'answer') {
+      //   pc.current.setRemoteDescription(new RTCSessionDescription(message.sdp));
+      // }
+    });
+
+    _socket.on('candidate', candidate => {
+      candidates.current = [...candidates.current, candidate];
+      addIceCandidates();
+    });
+
+    _socket.on('user-ready', (data) => {
+      console.log('ready', data);
+      setPartnerReady(true);
+      if (ready) {
+        setCanStart(true);
+      }
+    });
+  }
 
   const getUserMedia = async () => {
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     localVideoRef.current ? localVideoRef.current.srcObject = stream : null;
-
 
     const _pc = new RTCPeerConnection({
       iceServers: [
@@ -95,7 +119,7 @@ const Meeting: React.FC = () => {
 
     _pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socket.emit('candidate', event.candidate);
+        socket.current?.emit('candidate', event.candidate);
       }
     }
 
@@ -113,13 +137,20 @@ const Meeting: React.FC = () => {
     stream.getTracks().forEach(track => _pc.addTrack(track, stream));
 
     pc.current = _pc;
+
+    socket.current?.emit('ready', userId);
+
+    setReady(true);
+    if (partnerReady) {
+      setCanStart(true);
+    }
   }
 
   // refactored
   const createOffer = async () => {
     const offer = await pc.current?.createOffer();
     await pc.current?.setLocalDescription(offer);
-    socket.emit('sdp', { sdp: pc.current?.localDescription, meetingId, userId });
+    socket.current?.emit('sdp', { sdp: pc.current?.localDescription, meetingId, userId });
     setIsHost(true);
   }
 
@@ -130,7 +161,7 @@ const Meeting: React.FC = () => {
     }).then((sdp) => {
       pc.current.setLocalDescription(sdp);
 
-      socket.emit('sdp', {
+      socket.current?.emit('sdp', {
         sdp,
         meetingId,
         userId
@@ -149,6 +180,12 @@ const Meeting: React.FC = () => {
     // if(action === 'answer') createAnswer();
   }
 
+  useEffect(() => {
+    // getUserMedia();
+    setSocketIo();
+    console.log(1);
+  }, [role]);
+
   return (
     <Container>
       <Top>
@@ -156,11 +193,11 @@ const Meeting: React.FC = () => {
         <SectionTitle>Criar uma conta</SectionTitle>
         <Content>
           <UserBox>
-            <video width="500" height="240" controls ref={localVideoRef} onPlay={handleOnPlay} autoPlay></video>
+            <video width="500" height="240" controls ref={localVideoRef} onPlay={handleOnPlay} className='rounded-3xl' autoPlay></video>
             <NameBox>Usuário Samuel</NameBox>
           </UserBox>
           <UserBox>
-            <video width="500" height="240" controls ref={remoteVideoRef} autoPlay></video>
+            <video width="500" height="240" controls ref={remoteVideoRef} autoPlay className='rounded-3xl'></video>
             <NameBox>Usuário Samuel</NameBox>
           </UserBox>
         </Content>
@@ -168,47 +205,25 @@ const Meeting: React.FC = () => {
 
       <div className="grid grid-cols-2">
         <div className='px-2'>
-          <Button onClick={getUserMedia}>
-            <ButtonText>Autorizar</ButtonText>
-          </Button>
+          <PingLoadingButton text='Autorizar câmera' disabled={!canAuthorize} onClick={getUserMedia} />
         </div>
         <div className='px-2'>
-          <Button onClick={createOffer}>
-            <ButtonText>Iniciar</ButtonText>
-          </Button>
+          <PingLoadingButton text='Aguardando professor' disabled={!canStart} waiting={!canStart} onClick={createOffer} />
         </div>
-        {/* <div className='px-2'>
-          <Button onClick={createOffer}>
-            <ButtonText>Create offer</ButtonText>
-          </Button>
-        </div>
-        <div className='px-2'>
-          <Button onClick={createAnswer}>
-            <ButtonText>Create answer</ButtonText>
-          </Button>
-        </div>
-        <div className='px-2'>
-          <Button onClick={setRemoteDescription}>
-            <ButtonText>Set remote description</ButtonText>
-          </Button>
-        </div>
-        <div className='px-2'>
-          <Button onClick={addIceCandidates}>
-            <ButtonText>Add candidates</ButtonText>
-          </Button>
-        </div> */}
       </div>
-      {/* <div className="grid grid-cols-2">
+      <div className="grid grid-cols-2 hidden">
         <div className='px-2'>
           <textarea ref={textRef} className={"block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"}></textarea>
         </div>
-      </div> */}
+      </div>
 
-      <Button>
-        <ButtonText>Sair</ButtonText>
-      </Button>
+      <div className="flex justify-center items-center m-8">
+        <Button className='bg-rose-300 hover:bg-rose-500 px-16 py-3 flex justify-center items-center rounded-3xl m-auto'>
+          <ButtonText>Sair</ButtonText>
+        </Button>
+      </div>
     </Container>
   );
 }
 
-export default Meeting;
+export default Room;

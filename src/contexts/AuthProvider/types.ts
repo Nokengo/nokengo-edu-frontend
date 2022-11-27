@@ -1,6 +1,16 @@
 export interface IUser {
   email?: string;
   token?: string;
+  role?: string;
+  id?: string;
+}
+
+export interface DecodedToken {
+  email: string;
+  exp: number;
+  iat: number;
+  sub: string;
+  role: number;
 }
 
 export interface IContext extends IUser {

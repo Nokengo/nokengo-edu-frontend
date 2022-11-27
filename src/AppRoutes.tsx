@@ -1,21 +1,15 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { ProtectedLayout } from './components/ProtectedLayout';
+import ProtectedRoutes from './components/ProtectedRoutes';
 import { Home } from './pages/home';
 import Login from './pages/login';
 import Logout from './pages/login/logout';
-import MeetingsNew from './pages/meetings/new';
-import Room from './pages/meetings/watch';
-import Search from './pages/search';
+import Meeting from './pages/meetings/watch';
+import RoomsCreateView from './pages/rooms/create';
+import Room from './pages/rooms/watch';
 import SignUp from './pages/sign-up';
-import StudentDashboardView from './pages/student/dashboard/view';
-import TutorDashboardView from './pages/tutor/dashboard/view';
 
 function AppRoutes() {
-  React.useEffect(() => {
-    console.log('AppRoutes');
-  }, []);
-
   return (
     <BrowserRouter>
       <Routes>
@@ -23,17 +17,18 @@ function AppRoutes() {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
-        </Routes>
-        <ProtectedLayout>
-          <Routes>
-            <Route path="/student/dashboard" element={<StudentDashboardView />} />
-            <Route path="/tutor/dashboard" element={<TutorDashboardView />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/room" element={<Room />} />
-            <Route path="/meetings/new" element={<MeetingsNew />} />
-            <Route path="/meetings/watch/:meetingId/:action/:userId" element={<Room />} />
-          </Routes>
-        </ProtectedLayout>
+        <Route element={<ProtectedRoutes />}>
+          <Route path="/rooms/create" element={<RoomsCreateView />} />
+          <Route path="/rooms/:id" element={<Room />} />
+          <Route path="/meetings/watch/:meetingId" element={<Meeting />} />
+
+          {/* <Route path="/student/dashboard" element={<StudentDashboardView />} />
+          <Route path="/tutor/dashboard" element={<TutorDashboardView />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/room" element={<Room />} />
+          <Route path="/meetings/new" element={<MeetingsNew />} /> */}
+        </Route>
+      </Routes>
     </BrowserRouter>
   )
 }

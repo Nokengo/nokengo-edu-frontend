@@ -1,10 +1,10 @@
 import React from "react";
 import { useAuth } from "../../contexts/AuthProvider/useAuth"
 
-export const ProtectedLayout = ({children}: {children: JSX.Element}) => {
+export const ProtectedLayout = ({ children }: { children: JSX.Element }) => {
   const auth = useAuth();
 
-  if(!auth.token){
+  if (!auth.token) {
     return <div>Not logged in</div>
   }
 

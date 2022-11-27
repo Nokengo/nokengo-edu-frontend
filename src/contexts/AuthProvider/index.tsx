@@ -1,34 +1,37 @@
-import React, {createContext, useEffect} from "react";
+import React, { createContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IAuthProvider, IContext, IUser, LoginReqDto } from "./types";
-import { loginRequest, setUserLocalStorage } from "./util";
+import { decodeToken, loginRequest, setUserLocalStorage } from "./util";
 
 export const AuthContext = createContext<IContext>({} as IContext);
 
 export const AuthProvider = ({ children }: IAuthProvider) => {
   const [user, setUser] = React.useState<IUser | null>(null);
-  
+  const data = localStorage.getItem("token");
+
+  if (data !== null && user === null) {
+    setUser(JSON.parse(data));
+  }
+
   async function authenticate({ email, password }: LoginReqDto) {
     const response = await loginRequest(email, password)
-    const payload = {token: response.access_token}
+    const { role, sub } = decodeToken(response.access_token);
+
+    const payload = {
+      token: response.access_token,
+      email: email,
+      role: role,
+      id: sub,
+    }
 
     setUser(payload);
     setUserLocalStorage(payload);
   }
 
-  function logout() {
+  const logout = () => {
     setUser(null);
     setUserLocalStorage(null);
   }
-
-  useEffect(() => {
-    if(user===null){
-      const user = localStorage.getItem("u");
-      if (user) {
-        setUser(JSON.parse(user));
-      }
-    }
-  }, [user]);
 
   return (
     <AuthContext.Provider value={{ ...user, authenticate, logout }}>
