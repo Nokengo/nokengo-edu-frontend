@@ -11,8 +11,13 @@ const Login: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      await auth.authenticate(form);
-      navigate('/rooms/create');
+      const response = await auth.authenticate(form);
+      console.log(response);
+      if (response.role == '2') {
+        navigate('/rooms/list');
+      } else {
+        navigate('/rooms/create');
+      }
     } catch (err) {
       console.log(err);
     }
@@ -29,7 +34,6 @@ const Login: React.FC = () => {
     setForm({ ...form, [name]: value });
   };
 
-  console.log(form);
   return (
     <Container>
       <Top>

@@ -14,7 +14,7 @@ import {
 
 import io, { Socket } from 'socket.io-client';
 import Peer from "peerjs";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PingLoadingButton from '../../../components/PingLoading';
 import { useAuth } from '../../../contexts/AuthProvider/useAuth';
 
@@ -27,6 +27,7 @@ const Room: React.FC = () => {
   const { id: userId, role, email } = useAuth();
   const [partnerReady, setPartnerReady] = React.useState(false);
   const [ready, setReady] = React.useState(false);
+  const navigate = useNavigate();
 
   //console.log(meetingId);
 
@@ -44,6 +45,8 @@ const Room: React.FC = () => {
   const newPeer = React.useRef<Peer>();
   const [isHost, setIsHost] = React.useState(false);
   const socket = useRef<Socket>();
+  const isReady = useRef(false);
+  const [hasPartner, setHasPartner] = React.useState(false);
 
   const setSocketIo = () => {
     const _socket = io('http://localhost:3000/');
@@ -56,7 +59,8 @@ const Room: React.FC = () => {
       console.log(success);
 
       //join room
-      _socket.emit('join-room', { meetingId, userId });
+      console.log('meetingId', meetingId);
+      _socket.emit('join-room', { meetingId, userId, role, email });
     });
 
     _socket.on('user-connected', (partnerId) => {
@@ -64,6 +68,7 @@ const Room: React.FC = () => {
       if (userId !== partnerId) {
         setTimeout(() => {
           // setCanStart(true);
+          setHasPartner(true);
         }, 2000);
       }
     });
@@ -85,20 +90,25 @@ const Room: React.FC = () => {
     _socket.on('candidate', candidate => {
       candidates.current = [...candidates.current, candidate];
       addIceCandidates();
+      console.log('has candidate');
     });
 
     _socket.on('user-ready', (data) => {
-      console.log('ready', data);
-      setPartnerReady(true);
-      if (ready) {
+      setTimeout(() => {
         setCanStart(true);
-      }
+      }, 2000);
     });
   }
+
+  useEffect(() => {
+    console.log('ready', ready);
+  }, [ready]);
 
   const getUserMedia = async () => {
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     localVideoRef.current ? localVideoRef.current.srcObject = stream : null;
+    setReady(true);
+    isReady.current = true;
 
     const _pc = new RTCPeerConnection({
       iceServers: [
@@ -139,11 +149,6 @@ const Room: React.FC = () => {
     pc.current = _pc;
 
     socket.current?.emit('ready', userId);
-
-    setReady(true);
-    if (partnerReady) {
-      setCanStart(true);
-    }
   }
 
   // refactored
@@ -180,8 +185,12 @@ const Room: React.FC = () => {
     // if(action === 'answer') createAnswer();
   }
 
+  const handleExit = () => {
+    socket.current?.disconnect();
+    navigate('/rooms/create');
+  }
+
   useEffect(() => {
-    // getUserMedia();
     setSocketIo();
     console.log(1);
   }, [role]);
@@ -203,25 +212,42 @@ const Room: React.FC = () => {
         </Content>
       </Top>
 
-      <div className="grid grid-cols-2">
-        <div className='px-2'>
-          <PingLoadingButton text='Autorizar câmera' disabled={!canAuthorize} onClick={getUserMedia} />
-        </div>
-        <div className='px-2'>
-          <PingLoadingButton text='Aguardando professor' disabled={!canStart} waiting={!canStart} onClick={createOffer} />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 hidden">
-        <div className='px-2'>
-          <textarea ref={textRef} className={"block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"}></textarea>
-        </div>
-      </div>
+      {role && (
+        <>
+          <div className="grid grid-cols-2">
+            {hasPartner && !ready && role == '1' && (
+              <div className='px-2'>
+                <PingLoadingButton text='Autorizar câmera [al]' disabled={!canAuthorize} onClick={getUserMedia} />
+              </div>
+            )}
 
-      <div className="flex justify-center items-center m-8">
-        <Button className='bg-rose-300 hover:bg-rose-500 px-16 py-3 flex justify-center items-center rounded-3xl m-auto'>
-          <ButtonText>Sair</ButtonText>
-        </Button>
-      </div>
+            {!ready && role == '2' && (
+              <div className='px-2'>
+                <PingLoadingButton text='Autorizar câmera [pr]' disabled={!canAuthorize} onClick={getUserMedia} />
+              </div>
+            )}
+
+
+            {role == '1' && (
+              <div className='px-2'>
+                <PingLoadingButton text='Aguardando professor' disabled={!canStart} waiting={!canStart} onClick={createOffer} />
+              </div>
+            )}
+
+          </div>
+          <div className="grid grid-cols-2 hidden">
+            <div className='px-2'>
+              <textarea ref={textRef} className={"block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"}></textarea>
+            </div>
+          </div>
+
+          <div className="flex justify-center items-center m-8">
+            <Button onClick={() => handleExit()} className='bg-rose-300 hover:bg-rose-500 px-16 py-3 flex justify-center items-center rounded-3xl m-auto'>
+              <ButtonText>Sair</ButtonText>
+            </Button>
+          </div>
+        </>
+      )}
     </Container>
   );
 }

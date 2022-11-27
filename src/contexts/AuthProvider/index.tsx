@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }: IAuthProvider) => {
     setUser(JSON.parse(data));
   }
 
-  async function authenticate({ email, password }: LoginReqDto) {
+  const authenticate = async ({ email, password }: LoginReqDto) => {
     const response = await loginRequest(email, password)
     const { role, sub } = decodeToken(response.access_token);
 
@@ -26,6 +26,8 @@ export const AuthProvider = ({ children }: IAuthProvider) => {
 
     setUser(payload);
     setUserLocalStorage(payload);
+
+    return payload;
   }
 
   const logout = () => {

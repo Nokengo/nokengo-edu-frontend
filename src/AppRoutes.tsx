@@ -6,6 +6,7 @@ import Login from './pages/login';
 import Logout from './pages/login/logout';
 import Meeting from './pages/meetings/watch';
 import RoomsCreateView from './pages/rooms/create';
+import RoomList from './pages/rooms/list';
 import Room from './pages/rooms/watch';
 import SignUp from './pages/sign-up';
 
@@ -19,7 +20,8 @@ function AppRoutes() {
         <Route path="/logout" element={<Logout />} />
         <Route element={<ProtectedRoutes />}>
           <Route path="/rooms/create" element={<RoomsCreateView />} />
-          <Route path="/rooms/:id" element={<Room />} />
+          <Route path="/rooms/list" element={<RoomList />} />
+          <Route path="/rooms/:meetingId" element={<Room />} />
           <Route path="/meetings/watch/:meetingId" element={<Meeting />} />
 
           {/* <Route path="/student/dashboard" element={<StudentDashboardView />} />

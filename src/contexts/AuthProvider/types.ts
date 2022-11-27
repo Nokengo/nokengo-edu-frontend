@@ -14,7 +14,7 @@ export interface DecodedToken {
 }
 
 export interface IContext extends IUser {
-  authenticate: ({email, password}: LoginReqDto) => Promise<void>;
+  authenticate: ({email, password}: LoginReqDto) => Promise<TokenDto>;
   logout: () => void;
 }
 
