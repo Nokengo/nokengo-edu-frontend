@@ -60,7 +60,7 @@ const SignUp: React.FC = () => {
     try {
       const response = await api.post('/v1/users', payload);
       alert('Usuário cadastrado com sucesso');
-      // navigate('/login');
+      navigate('/login');
     } catch (error) {
       alert('Erro ao cadastrar');
     }
@@ -73,7 +73,7 @@ const SignUp: React.FC = () => {
         <Title>Bem-vindo!</Title>
         <SectionTitle>Criar uma conta</SectionTitle>
         <TextInput name='name' placeholder="Seu nome" onChange={handleInputChange} />
-        <TextInput name='email' placeholder="E-mail" onChange={handleInputChange} />
+        <TextInput name='email' placeholder="E-mail" onChange={handleInputChange} autoComplete='off' />
         <TextInput name='password' placeholder="Senha" onChange={handleInputChange} type='password' />
         <TextInput name='confirmPassword' placeholder="Confirme sua senha" onChange={handleInputChange} type='password' />
         <Select name='groupId' onChange={handleSelectChange} >

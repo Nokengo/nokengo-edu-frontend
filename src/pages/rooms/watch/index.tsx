@@ -49,8 +49,8 @@ const Room: React.FC = () => {
   const [hasPartner, setHasPartner] = React.useState(false);
 
   const setSocketIo = () => {
-    // const _socket = io('http://localhost:3000/');
-    const _socket = io('https://backedu.nokengo.com/');
+    const _socket = io('http://localhost:3000/');
+    // const _socket = io('https://backedu.nokengo.com/');
     socket.current = _socket;
 
 
@@ -197,16 +197,14 @@ const Room: React.FC = () => {
   return (
     <Container>
       <Top>
-        <Title>Sala xxxx</Title>
-        <SectionTitle>Criar uma conta</SectionTitle>
         <Content>
           <UserBox>
             <video width="500" height="240" controls ref={localVideoRef} onPlay={handleOnPlay} className='rounded-3xl' autoPlay></video>
-            <NameBox>Usuário Samuel</NameBox>
+            {/* <NameBox>{email}</NameBox> */}
           </UserBox>
           <UserBox>
             <video width="500" height="240" controls ref={remoteVideoRef} autoPlay className='rounded-3xl'></video>
-            <NameBox>Usuário Samuel</NameBox>
+            {/* <NameBox></NameBox> */}
           </UserBox>
         </Content>
       </Top>
